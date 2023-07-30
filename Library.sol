@@ -16,7 +16,16 @@ contract Library is Ownable {
     mapping (address => mapping(uint => uint)) public personToBook;
 
     function addBook(uint _isbn, uint _copies) external onlyOwner {
+        bool isbnExists = false;
+        for (uint i = 0; i < books.length; i++) {
+            if (books[i].isbn == _isbn) {
+                isbnExists = true;
+                break;
+            }
+        }
+        require(isbnExists == false, "Book with this ISBN already exists");
         require(_copies > 0, "At least one copy of the books is required");
+
         Book memory book;
         book.isbn = _isbn;
         book.copies = _copies;
