@@ -1,5 +1,5 @@
-// SPDX-License-Identifier: UNLICENSED
-pragma solidity >=0.8.2 <0.9.0;
+// SPDX-License-Identifier: MIT
+pragma solidity 0.8.19;
 
 import "./Ownable.sol";
 
@@ -11,68 +11,87 @@ contract Library is Ownable {
         address[] borrowers;
     }
 
-    Book[] public books;
+    mapping(uint => Book) private isbnToBook;
+    mapping(uint => bool) private isbnInserted;
+    uint[] private isbnList;
 
-    mapping (address => mapping(uint => uint)) public personToBook;
+    mapping(address => mapping(uint => bool)) public personToBookBorrowed;
+
+    error BookNotFound();
+    error BookAlreadyExists();
+    error NotEnoughCopies();
+    error BookAlreadyBorrowedByAddress();
+    error BookNotBorrowedByAddress();
+    error NoAvailableBooks();
 
     function addBook(uint _isbn, uint _copies) external onlyOwner {
-        bool isbnExists = false;
-        for (uint i = 0; i < books.length; i++) {
-            if (books[i].isbn == _isbn) {
-                isbnExists = true;
-                break;
-            }
+        if (_copies == 0) {
+            revert NotEnoughCopies();
         }
-        require(isbnExists == false, "Book with this ISBN already exists");
-        require(_copies > 0, "At least one copy of the books is required");
+        if (isbnInserted[_isbn] == true) {
+            revert BookAlreadyExists();
+        }
 
-        Book memory book;
-        book.isbn = _isbn;
-        book.copies = _copies;
-        book.borrowed = 0;
-
-        books.push(book);
+        isbnToBook[_isbn] = Book(_isbn, _copies, 0, new address[](0));
+        isbnInserted[_isbn] = true;
+        isbnList.push(_isbn);
     }
 
-    function borrowBook(uint _bookId) external {
-        require(books[_bookId].borrowed < books[_bookId].copies, "Not enough copies");
-        require(personToBook[msg.sender][_bookId] < 1, "The book is already borrowed by this address");
+    function borrowBook(uint _isbn) external {
+        if (isbnInserted[_isbn] == false) {
+            revert BookNotFound();
+        }
+        if (isbnToBook[_isbn].borrowed >= isbnToBook[_isbn].copies) {
+            revert NotEnoughCopies();
+        }
 
-        books[_bookId].borrowed++;
-        books[_bookId].borrowers.push(msg.sender);
-        personToBook[msg.sender][_bookId] = 1;
+        if (personToBookBorrowed[msg.sender][_isbn] == true) {
+            revert BookAlreadyBorrowedByAddress();
+        }
+
+        isbnToBook[_isbn].borrowed++;
+        isbnToBook[_isbn].borrowers.push(msg.sender);
+        personToBookBorrowed[msg.sender][_isbn] = true;
     }
 
-    function returnBook(uint _bookId) external {
-        require(personToBook[msg.sender][_bookId] == 1, "The book is not borrowed by this address");
+    function returnBook(uint _isbn) external {
+        if (personToBookBorrowed[msg.sender][_isbn] == false) {
+            revert BookNotBorrowedByAddress();
+        }
 
-        books[_bookId].borrowed--;
-        delete personToBook[msg.sender][_bookId];
+        isbnToBook[_isbn].borrowed--;
+        personToBookBorrowed[msg.sender][_isbn] = false;
     }
 
     function getAvailableBooks() external view returns (uint[] memory) {
         uint availableBooksCount = 0;
-        for (uint i = 0; i < books.length; i++) {
-            if (books[i].copies - books[i].borrowed > 0) {
+        for (uint i = 0; i < isbnList.length; i++) {
+            if (isbnToBook[isbnList[i]].copies - isbnToBook[isbnList[i]].borrowed > 0) {
                 availableBooksCount++;
             }
         }
 
-        require (availableBooksCount > 0, "There are no available books");
+        if (availableBooksCount == 0) {
+            revert NoAvailableBooks();
+        }
 
-        uint[] memory bookIds = new uint[](availableBooksCount);
+        uint[] memory books = new uint[](availableBooksCount);
         uint counter = 0;
-        for (uint i = 0; i < books.length; i++) {
-            if (books[i].copies - books[i].borrowed > 0) {
-                bookIds[counter] = i;
+        for (uint i = 0; i < isbnList.length; i++) {
+            if (isbnToBook[isbnList[i]].copies - isbnToBook[isbnList[i]].borrowed > 0) {
+                books[counter] = isbnList[i];
                 counter++;
             }
         }
 
-        return bookIds;
+        return books;
     }
 
-    function getPersonsBorrowedABook(uint _bookId) external view returns (address[] memory){
-        return books[_bookId].borrowers;
+    function getPersonsBorrowedABook(uint _isbn) external view returns (address[] memory){
+        if (isbnInserted[_isbn] == false) {
+            revert BookNotFound();
+        }
+
+        return isbnToBook[_isbn].borrowers;
     }
 }
