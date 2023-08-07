@@ -17,6 +17,10 @@ contract Library is Ownable {
 
     mapping(address => mapping(uint64 => bool)) public personToBookBorrowed;
 
+    event BookAdded(uint64 isbn, uint8 copies);
+    event BookBorrowed(uint64 isbn, address user);
+    event BookReturned(uint64 isbn, address user);
+
     error BookNotFound();
     error BookAlreadyExists();
     error NotEnoughCopies();
@@ -35,6 +39,8 @@ contract Library is Ownable {
         isbnToBook[_isbn] = Book(_isbn, _copies, 0, new address[](0));
         isbnInserted[_isbn] = true;
         isbnList.push(_isbn);
+
+        emit BookAdded(_isbn, _copies);
     }
 
     function borrowBook(uint64 _isbn) external {
@@ -52,6 +58,8 @@ contract Library is Ownable {
         isbnToBook[_isbn].borrowed++;
         isbnToBook[_isbn].borrowers.push(msg.sender);
         personToBookBorrowed[msg.sender][_isbn] = true;
+
+        emit BookBorrowed(_isbn, msg.sender);
     }
 
     function returnBook(uint64 _isbn) external {
@@ -61,6 +69,8 @@ contract Library is Ownable {
 
         isbnToBook[_isbn].borrowed--;
         personToBookBorrowed[msg.sender][_isbn] = false;
+
+        emit BookReturned(_isbn, msg.sender);
     }
 
     function getAvailableBooks() external view returns (uint64[] memory) {
