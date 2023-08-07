@@ -5,17 +5,17 @@ import "./Ownable.sol";
 
 contract Library is Ownable {
     struct Book {
-        uint isbn;
-        uint copies;
-        uint borrowed;
+        uint64 isbn;
+        uint8 copies;
+        uint8 borrowed;
         address[] borrowers;
     }
 
-    mapping(uint => Book) private isbnToBook;
-    mapping(uint => bool) private isbnInserted;
-    uint[] private isbnList;
+    mapping(uint64 => Book) private isbnToBook;
+    mapping(uint64 => bool) private isbnInserted;
+    uint64[] private isbnList;
 
-    mapping(address => mapping(uint => bool)) public personToBookBorrowed;
+    mapping(address => mapping(uint64 => bool)) public personToBookBorrowed;
 
     error BookNotFound();
     error BookAlreadyExists();
@@ -24,7 +24,7 @@ contract Library is Ownable {
     error BookNotBorrowedByAddress();
     error NoAvailableBooks();
 
-    function addBook(uint _isbn, uint _copies) external onlyOwner {
+    function addBook(uint64 _isbn, uint8 _copies) external onlyOwner {
         if (_copies == 0) {
             revert NotEnoughCopies();
         }
@@ -37,7 +37,7 @@ contract Library is Ownable {
         isbnList.push(_isbn);
     }
 
-    function borrowBook(uint _isbn) external {
+    function borrowBook(uint64 _isbn) external {
         if (isbnInserted[_isbn] == false) {
             revert BookNotFound();
         }
@@ -54,7 +54,7 @@ contract Library is Ownable {
         personToBookBorrowed[msg.sender][_isbn] = true;
     }
 
-    function returnBook(uint _isbn) external {
+    function returnBook(uint64 _isbn) external {
         if (personToBookBorrowed[msg.sender][_isbn] == false) {
             revert BookNotBorrowedByAddress();
         }
@@ -63,7 +63,7 @@ contract Library is Ownable {
         personToBookBorrowed[msg.sender][_isbn] = false;
     }
 
-    function getAvailableBooks() external view returns (uint[] memory) {
+    function getAvailableBooks() external view returns (uint64[] memory) {
         uint availableBooksCount = 0;
         for (uint i = 0; i < isbnList.length; i++) {
             if (isbnToBook[isbnList[i]].copies - isbnToBook[isbnList[i]].borrowed > 0) {
@@ -75,7 +75,7 @@ contract Library is Ownable {
             revert NoAvailableBooks();
         }
 
-        uint[] memory books = new uint[](availableBooksCount);
+        uint64[] memory books = new uint64[](availableBooksCount);
         uint counter = 0;
         for (uint i = 0; i < isbnList.length; i++) {
             if (isbnToBook[isbnList[i]].copies - isbnToBook[isbnList[i]].borrowed > 0) {
@@ -87,7 +87,7 @@ contract Library is Ownable {
         return books;
     }
 
-    function getPersonsBorrowedABook(uint _isbn) external view returns (address[] memory){
+    function getPersonsBorrowedABook(uint64 _isbn) external view returns (address[] memory){
         if (isbnInserted[_isbn] == false) {
             revert BookNotFound();
         }
