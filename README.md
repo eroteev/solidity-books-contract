@@ -13,3 +13,5 @@ npx hardhat run scripts/deploy.ts
 npx hardhat deploy
 npx hardhat --network sepolia deploy-with-pk --private-key <DEPLOYER_PK>
 ```
+
+Verified contract link: https://sepolia.etherscan.io/address/0x3eFB055AEb699D2DdA7f0e90f906091477D4FBb5#code
