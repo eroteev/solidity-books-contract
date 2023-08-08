@@ -6,12 +6,32 @@ const lazyImport = async(module: any) => {
 }
 
 task("deploy", "Deploys contract").setAction(async() => {
-  const { main } = await lazyImport("./scripts/deploy.ts");
+  const { main } = await lazyImport("./scripts/deploy");
   await main();
 })
 
+task("deploy-with-pk", "Deploys contract with pk")
+  .addParam("privateKey", "Please provide the private key")
+  .setAction(async ({ privateKey }) => {
+    const { main } = await lazyImport("./scripts/deploy-pk");
+    await main(privateKey);
+  });
+
 const config: HardhatUserConfig = {
-  solidity: "0.8.19",
+  solidity: {
+    version: "0.8.19",
+    settings: {
+      optimizer: {
+        enabled: true,
+        runs: 200
+      }
+    }
+  },
+  networks: {
+    sepolia: {
+      url: `https://sepolia.infura.io/v3/72990efc86764d69b6402052ee02824c`,
+    }
+  }
 };
 
 export default config;
