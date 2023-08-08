@@ -31,6 +31,11 @@ const config: HardhatUserConfig = {
     sepolia: {
       url: `https://sepolia.infura.io/v3/72990efc86764d69b6402052ee02824c`,
     }
+  },
+  etherscan: {
+    apiKey: {
+      sepolia: 'CHIRAADNUI814XIT9ST36R63UFNBNDKBDY'
+    }
   }
 };
 
