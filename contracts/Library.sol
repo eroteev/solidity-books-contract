@@ -43,6 +43,10 @@ contract Library is Ownable {
         emit BookAdded(_isbn, _copies);
     }
 
+    function getBook(uint64 _isbn) external view returns(Book memory book) {
+        return isbnToBook[_isbn];
+    }
+
     function borrowBook(uint64 _isbn) external {
         Book storage book = isbnToBook[_isbn];
         if (book.isbn == 0) {
