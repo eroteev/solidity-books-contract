@@ -1,5 +1,10 @@
 import { HardhatUserConfig } from "hardhat/config";
 import "@nomicfoundation/hardhat-toolbox";
+import dotenv from "dotenv";
+
+dotenv.config();
+const INFURA_KEY = process.env.INFURA_KEY;
+const ETHERSCAN_API_KEY = process.env.ETHERSCAN_API_KEY;
 
 const lazyImport = async(module: any) => {
   return await import(module);
@@ -29,12 +34,12 @@ const config: HardhatUserConfig = {
   },
   networks: {
     sepolia: {
-      url: `https://sepolia.infura.io/v3/72990efc86764d69b6402052ee02824c`,
+      url: `https://sepolia.infura.io/v3/${INFURA_KEY}`,
     }
   },
   etherscan: {
     apiKey: {
-      sepolia: 'CHIRAADNUI814XIT9ST36R63UFNBNDKBDY'
+      sepolia: ETHERSCAN_API_KEY
     }
   }
 };
