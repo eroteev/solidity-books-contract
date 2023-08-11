@@ -5,7 +5,3 @@ export async function main() {
   await library.waitForDeployment();
   console.log(`The Library contract is deployed to ${library.target}`);
 }
-main().catch((error) => {
-  console.error(error);
-  process.exitCode = 1;
-});
