@@ -2,6 +2,7 @@
 pragma solidity 0.8.19;
 
 import "@openzeppelin/contracts/access/Ownable.sol";
+import "hardhat/console.sol";
 
 contract Library is Ownable {
     struct Book {
@@ -41,6 +42,7 @@ contract Library is Ownable {
         isbnList.push(_isbn);
 
         emit BookAdded(_isbn, _copies);
+        console.log("Book added. ISBN: %s, copies: %s", _isbn, _copies);
     }
 
     function getBook(uint64 _isbn) external view returns(Book memory book) {
